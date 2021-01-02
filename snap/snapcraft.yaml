@@ -1,0 +1,81 @@
+name: coq-prover
+base: core18
+version: '8-13-0-beta1'
+summary: Coq
+description: |
+  The Coq interactive prover provides a formal language to write
+  mathematical definitions, executable algorithms, and theorems, together
+  with an environment for semi-interactive development of machine-checked
+  proofs.
+  
+  This snap contains the Coq prover version 8.13.0+beta1
+  along with CoqIDE and the following packages:
+  * **aac-tactics**: Coq plugin providing tactics for rewriting universally quantified equations, modulo associative (and possibly commutative) operators (version: 8.13.0, license: LGPL-3.0-or-later)
+  * **bignums**: Bignums, the Coq library of arbitrary large numbers (version: 8.13.0~beta1, license: LGPL-2.1-only)
+  * **compcert**: The CompCert C compiler (64 bit) (version: 3.8, license: INRIA Non-Commercial License Agreement)
+  * **coquelicot**: A Coq formalization of real analysis compatible with the standard library (version: 3.1.0, license: LGPL-3.0-or-later)
+  * **elpi**: Elpi extension language for Coq (version: 1.8.1, license: LGPL-2.1-or-later)
+  * **equations**: A function definition package for Coq (version: 1.2.3+8.13, license: LGPL-2.1-or-later)
+  * **ext-lib**: A library of Coq definitions, theorems, and tactics (version: 0.11.3, license: BSD)
+  * **flocq**: A formalization of floating-point arithmetic for the Coq system (version: 3.3.1, license: LGPL-3.0-or-later)
+  * **gappa**: A Coq tactic for discharging goals about floating-point arithmetic and round-off errors using the Gappa prover (version: 1.4.6, license: LGPL-3.0-or-later)
+  * **hierarchy-builder**: Hierarchy Builder (version: 1.0.0, license: MIT)
+  * **interval**: A Coq tactic for proving bounds on real-valued expressions automatically (version: 4.1.0, license: CeCILL-C)
+  * **mathcomp-algebra**: Mathematical Components Library on Algebra (version: 1.12.0, license: CECILL-B)
+  * **mathcomp-bigenough**: A small library to do epsilon - N reasonning (version: 1.0.0, license: CeCILL-B)
+  * **mathcomp-character**: Mathematical Components Library on character theory (version: 1.12.0, license: CECILL-B)
+  * **mathcomp-field**: Mathematical Components Library on Fields (version: 1.12.0, license: CECILL-B)
+  * **mathcomp-fingroup**: Mathematical Components Library on finite groups (version: 1.12.0, license: CECILL-B)
+  * **mathcomp-finmap**: Finite sets, finite maps, finitely supported functions (version: 1.5.1, license: CECILL-B)
+  * **mathcomp-real-closed**: Mathematical Components Library on real closed fields (version: 1.1.2, license: CECILL-B)
+  * **mathcomp-solvable**: Mathematical Components Library on finite groups (II) (version: 1.12.0, license: CECILL-B)
+  * **mathcomp-ssreflect**: Small Scale Reflection (version: 1.12.0, license: CECILL-B)
+  * **menhirlib**: A support library for verified Coq parsers produced by Menhir (version: 20200624, license: LGPL-3.0-or-later)
+  * **mtac2**: Mtac2: Typed Tactics for Coq (version: 1.4+8.13, license: MIT)
+  * **quickchick**: Randomized Property-Based Testing Plugin for Coq (version: 1.5.0, license: MIT)
+  * **simple-io**: IO monad for Coq (version: 1.5.0, license: MIT)
+  * **unicoq**: An enhanced unification algorithm for Coq (version: 1.5+8.13, license: MIT)
+  * **vst**: Verified Software Toolchain (version: 2.7, license: https://raw.githubusercontent.com/PrincetonUniversity/VST/master/LICENSE)
+
+grade: stable
+confinement: strict
+
+parts:
+  coq:
+    plugin: nil
+    build-packages: [build-essential, curl, m4, unzip, git]
+    source: .
+    source-type: local
+    override-build: |
+      echo "COQ_PLATFORM_VERSION=8-13-0-beta1" >> coq_platform_switch_name.sh
+      echo "COQ_PLATFORM_SWITCH_NAME=8-13-0-beta1" >> coq_platform_switch_name.sh
+      COQREGTESTING=y OPAMROOT=$SNAPCRAFT_PART_INSTALL/coq-platform/ ./coq_platform_make.sh -extent=f -jobs=3 -parallel=p -switch=k -compcert=f -vst=y
+      OPAMROOT=$SNAPCRAFT_PART_INSTALL/coq-platform/ opam clean
+      echo 'COQLIB=/snap/coq/current/coq-platform/8-13-0-beta1/lib/coq' > $SNAPCRAFT_PART_INSTALL/coq-platform/8-13-0-beta1/bin/coq_environment.txt
+      echo 'OCAMLFIND=/snap/coq/current/coq-platform/8-13-0-beta1/bin/ocamlfind' >> $SNAPCRAFT_PART_INSTALL/coq-platform/8-13-0-beta1/bin/coq_environment.txt
+      find $SNAPCRAFT_PART_INSTALL/coq-platform/8-13-0-beta1/ \( -name '*.byte.exe' -o -name '*.byte' -o -name '*.cm[aioxt]' -o -name '*.cmxa' -o -name '*.[oa]' -o -name '*.cmti' -o -name '*.glob' \) -type f  -delete
+      find $SNAPCRAFT_PART_INSTALL/coq-platform/8-13-0-beta1/bin/ -maxdepth 1 -mindepth 1 \! -name 'coq*' -exec rm -f {} \;
+      find $SNAPCRAFT_PART_INSTALL/coq-platform/8-13-0-beta1/lib/ -maxdepth 1 -mindepth 1 \! \( -name 'coq' -o -name 'stublibs' \) -exec rm -rf {} \;
+      rm -rf $SNAPCRAFT_PART_INSTALL/coq-platform/8-13-0-beta1/share/ocaml-secondary-compiler
+      rm -rf $SNAPCRAFT_PART_INSTALL/coq-platform/repo/
+
+apps:
+  coqide:
+    command: coq-platform/8-13-0-beta1/bin/coqide
+    plugs: [desktop, home]
+    extensions: [gnome-3-28]
+    desktop: ../project/snap/gui/coqide.desktop
+  coqtop:
+    plugs: [home]
+    command: coq-platform/8-13-0-beta1/bin/coqtop
+  coqc:
+    plugs: [home]
+    command: coq-platform/8-13-0-beta1/bin/coqc
+  coq-makefile:
+    plugs: [home]
+    command: coq-platform/8-13-0-beta1/bin/coq_makefile COQBIN = /snap/coq/current/coq-platform/8-13-0-beta1/bin/
+  coqidetop:
+    plugs: [home]
+    command: coq-platform/8-13-0-beta1/bin/coqidetop.opt
+
+

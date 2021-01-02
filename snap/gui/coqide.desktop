@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=CoqIDE
+Exec=coqide %F
+Icon=${SNAP}/coq-platform/8-13-0-beta1/share/coq/coq.png
+Type=Application
+MimeType=text/x-verilog
